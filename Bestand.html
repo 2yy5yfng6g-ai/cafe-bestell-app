@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café - Hier und Jetzt</title>
+    <style>
+        /* Modernes, schlichtes Design im Branding der Sommerkarte */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 480px; 
+            margin: auto; 
+            background-color: #e4e9ef; 
+            color: #122b5e; 
+        }
+        h2 { 
+            text-align: center; 
+            margin-bottom: 20px;
+            color: #164082; 
+        }
+        
+        /* Tab-Navigation oben */
+        .tab-bar {
+            display: flex;
+            background: #cdd5e0;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #164082;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: white;
+            box-shadow: 0 2px 8px rgba(22, 64, 130, 0.15);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #164082;
+        }
+        .item-list { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(22, 64, 130, 0.08); 
+            margin-bottom: 20px; 
+        }
+        .item { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 16px; 
+            font-size: 18px; 
+            cursor: pointer;
+        }
+        .item:last-child {
+            margin-bottom: 0;
+        }
+        input[type="checkbox"] { 
+            transform: scale(1.5); 
+            margin-right: 18px; 
+            accent-color: #164082; 
+        }
+        
+        /* Container für Kuchen und Anmerkungen */
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+        .row:last-child {
+            margin-bottom: 0;
+        }
+        .field, .note-field, input[type="text"], input[type="date"], input[type="number"], select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #cdd5e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px;
+            background: white;
+            color: #122b5e;
+        }
+        .field:focus, .note-field:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #164082;
+        }
+        .field::placeholder, .note-field::placeholder, input::placeholder {
+            color: #8a9bb5;
+        }
+        
+        /* Spezifische Breiten für Kuchen-Felder */
+        .cake-name { flex-grow: 2.2; }
+        .cake-date { flex-grow: 1.2; }
+        .cake-unit { flex-grow: 1; }
+        .cake-amount { flex-grow: 0.8; }
+
+        /* Lagerbestand Tabellen-Styling */
+        .stock-category {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(22, 64, 130, 0.08);
+            margin-bottom: 20px;
+        }
+        .stock-category h3 {
+            font-size: 16px;
+            color: #164082;
+            margin-top: 0;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #e4e9ef;
+            padding-bottom: 6px;
+        }
+        .stock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .stock-row:last-child {
+            margin-bottom: 0;
+        }
+        .stock-label {
+            flex-grow: 1;
+            padding-right: 10px;
+        }
+        .stock-sub {
+            font-size: 12px;
+            color: #8a9bb5;
+            display: block;
+        }
+        .stock-input {
+            width: 80px !important;
+            padding: 8px !important;
+            text-align: center;
+        }
+
+        /* Ergebnis-Box für Berechnungen */
+        #stock-result-box {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(22, 64, 130, 0.12);
+            margin-top: 20px;
+            border-left: 5px solid #164082;
+        }
+        #stock-result-box h3 {
+            margin-top: 0;
+            color: #164082;
+            font-size: 18px;
+        }
+
+        /* Löschen-Button (für einzelne Zeilen) */
+        .remove-btn {
+            background-color: #f8d7da;
+            color: #a71d2a;
+            border: none;
+            border-radius: 8px;
+            padding: 0 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            height: 46px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .remove-btn:active {
+            background-color: #f5c6cb;
+        }
+        
+        /* Plus-Button */
+        .add-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            color: #164082;
+            border: 2px dashed #164082;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 25px;
+            transition: background-color 0.2s;
+        }
+        .add-btn:active {
+            background-color: #d8e1ed;
+        }
+
+        /* Senden-Button */
+        .btn { 
+            display: block; 
+            width: 100%; 
+            padding: 16px; 
+            background-color: #164082; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-align: center; 
+            box-shadow: 0 4px 12px rgba(22, 64, 130, 0.25);
+            transition: background-color 0.2s;
+            margin-top: 20px;
+        }
+        .btn:active { 
+            background-color: #0e2954; 
+        }
+
+        /* NEU: Zurücksetzen-Button */
+        .btn-reset {
+            display: block; 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #e4e9ef; 
+            color: #4a5d78; 
+            border: 2px solid #cdd5e0; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-align: center; 
+            transition: background-color 0.2s;
+            margin-top: 15px;
+        }
+        .btn-reset:active {
+            background-color: #cdd5e0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- === HAUPT-APP BEREICH === -->
+    <div id="app-container">
+        <!-- Dynamische Überschrift mit aktuellem Datum -->
+        <h2 id="page-title">Café - Hier und Jetzt</h2>
+
+        <!-- Tab-Leiste zum Umschalten zwischen Bestellung und Lagerbestand -->
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('order', this)">Bestellung</button>
+            <button class="tab-btn" onclick="switchTab('stock', this)">Lagerbestand</button>
+        </div>
+
+        <!-- REITER 1: BESTELLUNG & KUCHEN (Via WhatsApp) -->
+        <div id="tab-order" class="tab-content">
+            <div class="item-list">
+                <label class="item"><input type="checkbox" value="Chai-Konzentrat"> Chai-Konzentrat</label>
+                <label class="item"><input type="checkbox" value="Matcha-Konzentrat"> Matcha-Konzentrat</label>
+                <label class="item"><input type="checkbox" value="Vanille Cold Foam"> Vanille Cold Foam</label>
+                <label class="item"><input type="checkbox" value="Strawberry Cold Foam"> Strawberry Cold Foam</label>
+                <label class="item"><input type="checkbox" value="Cold Brew"> Cold Brew</label>
+                <label class="item"><input type="checkbox" value="Recups groß"> Recups groß</label>
+                <label class="item"><input type="checkbox" value="Recups klein"> Recups klein</label>
+                <label class="item"><input type="checkbox" value="Recup Deckel"> Recup Deckel</label>
+            </div>
+
+            <div class="section-title">Kuchenbestand</div>
+            <div id="cake-container">
+                <div class="row cake-row">
+                    <input type="text" class="field cake-name" placeholder="Sorte">
+                    <input type="date" class="field cake-date" id="initial-cake-date">
+                    <select class="field cake-unit">
+                        <option value="ganz">ganz</option>
+                        <option value="Stk.">Stk.</option>
+                        <option value="Reserve">Reserve</option>
+                    </select>
+                    <input type="text" class="field cake-amount" placeholder="Menge">
+                    <button class="remove-btn" onclick="removeRow(this, 'cake-container')">×</button>
+                </div>
+            </div>
+            <button class="add-btn" onclick="addCake()">+ Weiteren Kuchen hinzufügen</button>
+
+            <div class="section-title">Anmerkungen</div>
+            <div id="notes-container">
+                <div class="row note-row">
+                    <textarea class="note-field" rows="2" placeholder="zusätzliche Infos"></textarea>
+                    <button class="remove-btn" onclick="removeRow(this, 'notes-container')">×</button>
+                </div>
+            </div>
+            <button class="add-btn" onclick="addNote()">+ Weitere Anmerkung</button>
+
+            <button class="btn" onclick="sendWhatsAppOrder()">Bestellung via WhatsApp senden</button>
+            
+            <!-- Refresh-Button für Bestellung -->
+            <button class="btn-reset" onclick="resetOrder()">Bestellung leeren</button>
+        </div>
+
+        <!-- REITER 2: LAGERBESTAND (Mit automatischer Bedarfsberechnung) -->
+        <div id="tab-stock" class="tab-content" style="display: none;">
+            <div style="font-size: 13px; color: #555; background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #164082;">
+                ℹ️ <b>Wichtig:</b> Bitte erst den vorderen Bereich (Regale, Kühltheken, Drucker) komplett auffüllen, danach den echten Lagerbestand eintragen!
+            </div>
+
+            <!-- Kaffeebohnen -->
+            <div class="stock-category">
+                <h3>Kaffeebohnen Verkauf</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Franz (Gemahlen) <span class="stock-sub">Bestellgrenze: 12</span></span>
+                    <input type="number" class="field stock-input" data-item="Kaffeebohnen Franz Gemahlen" data-limit="12" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Franz (Ganze Bohne) <span class="stock-sub">Bestellgrenze: 12</span></span>
+                    <input type="number" class="field stock-input" data-item="Kaffeebohnen Franz Ganze Bohne" data-limit="12" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Wilhelm (Gemahlen) <span class="stock-sub">Bestellgrenze: 12</span></span>
+                    <input type="number" class="field stock-input" data-item="Kaffeebohnen Wilhelm Gemahlen" data-limit="12" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Wilhelm (Ganze Bohne) <span class="stock-sub">Bestellgrenze: 12</span></span>
+                    <input type="number" class="field stock-input" data-item="Kaffeebohnen Wilhelm Ganze Bohne" data-limit="12" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Maria (Gemahlen) <span class="stock-sub">Bestellgrenze: 4</span></span>
+                    <input type="number" class="field stock-input" data-item="Kaffeebohnen Maria Gemahlen" data-limit="4" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Maria (Ganze Bohne) <span class="stock-sub">Bestellgrenze: 4</span></span>
+                    <input type="number" class="field stock-input" data-item="Kaffeebohnen Maria Ganze Bohne" data-limit="4" data-unit="Stk." placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Olivenöl -->
+            <div class="stock-category">
+                <h3>Olivenöl (Verkaufsregal)</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Olivenöl Flaschen <span class="stock-sub">Bestellgrenze: 6 Flaschen</span></span>
+                    <input type="number" class="field stock-input" data-item="Olivenöl" data-limit="6" data-unit="Flaschen" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Tüten -->
+            <div class="stock-category">
+                <h3>Tüten (Lager)</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Kleine Tüten <span class="stock-sub">Bestellgrenze: 2 Einheiten</span></span>
+                    <input type="number" class="field stock-input" data-item="Kleine Tüten" data-limit="2" data-unit="Einheiten" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Mittlere Tüten <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Mittlere Tüten" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Große Tüten <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Große Tüten" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Einschlagpapier -->
+            <div class="stock-category">
+                <h3>Einschlagpapier</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Kleines Papier (Karton) <span class="stock-sub">Bestellgrenze: 0</span></span>
+                    <input type="number" class="field stock-input" data-item="Kleines Einschlagpapier" data-limit="0" data-unit="Karton" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Großes Papier (Karton) <span class="stock-sub">Bestellgrenze: 0</span></span>
+                    <input type="number" class="field stock-input" data-item="Großes Einschlagpapier" data-limit="0" data-unit="Karton" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Bonrollen -->
+            <div class="stock-category">
+                <h3>Bonrollen</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Bonrollen-Karton (Lager) <span class="stock-sub">Bestellgrenze: 0</span></span>
+                    <input type="number" class="field stock-input" data-item="Bonrollen Karton" data-limit="0" data-unit="Karton" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Wein -->
+            <div class="stock-category">
+                <h3>Wein & Schaumwein (Lager)</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Rouge (Kisten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Wein Rouge" data-limit="1" data-unit="Kisten" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Rosé (Kisten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Wein Rosé" data-limit="1" data-unit="Kisten" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Blanc (Kisten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Wein Blanc" data-limit="1" data-unit="Kisten" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Riesling Mitanand (Kisten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Riesling Mitanand" data-limit="1" data-unit="Kisten" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Prosecco (Kisten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Prosecco" data-limit="1" data-unit="Kisten" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Sekt Feiertag (Kisten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Sekt Feiertag" data-limit="1" data-unit="Kisten" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Müllbeutel -->
+            <div class="stock-category">
+                <h3>Müllbeutel (Lager)</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Blaue Müllbeutel (Rollen) <span class="stock-sub">Bestellgrenze: 2 Einheiten</span></span>
+                    <input type="number" class="field stock-input" data-item="Blaue Müllbeutel" data-limit="2" data-unit="Einheiten" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Spülkammer & Reinigung -->
+            <div class="stock-category">
+                <h3>Spülkammer & Reinigung</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Spezialsalz (Karton) <span class="stock-sub">Bestellgrenze: 0</span></span>
+                    <input type="number" class="field stock-input" data-item="Spezialsalz" data-limit="0" data-unit="Karton" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Reiniger grau (Karton) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Reiniger grau" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Klarspüler blau (Karton) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Klarspüler blau" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Recups & Kakao -->
+            <div class="stock-category">
+                <h3>Recups & Sonstiges (Lagerbestand)</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Recups klein (blau) <span class="stock-sub">Bestellgrenze: 10</span></span>
+                    <input type="number" class="field stock-input" data-item="Recups klein blau" data-limit="10" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Recups groß (braun) <span class="stock-sub">Bestellgrenze: 10</span></span>
+                    <input type="number" class="field stock-input" data-item="Recups groß braun" data-limit="10" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Recup Deckel <span class="stock-sub">Bestellgrenze: 10</span></span>
+                    <input type="number" class="field stock-input" data-item="Recup Deckel" data-limit="10" data-unit="Stk." placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Kakao (Einheiten) <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Kakao" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <!-- Pappteller & Papier -->
+            <div class="stock-category">
+                <h3>Pappteller & Papier (Lager)</h3>
+                <div class="stock-row">
+                    <span class="stock-label">Kleine Pappteller <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Kleine Pappteller" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Große Pappteller <span class="stock-sub">Bestellgrenze: 1 Einheit</span></span>
+                    <input type="number" class="field stock-input" data-item="Große Pappteller" data-limit="1" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Servietten <span class="stock-sub">Bestellgrenze: 0</span></span>
+                    <input type="number" class="field stock-input" data-item="Servietten" data-limit="0" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+                <div class="stock-row">
+                    <span class="stock-label">Papierhandtücher <span class="stock-sub">Bestellgrenze: 0</span></span>
+                    <input type="number" class="field stock-input" data-item="Papierhandtücher" data-limit="0" data-unit="Einheit" placeholder="Anzahl">
+                </div>
+            </div>
+
+            <button class="btn" onclick="calculateStockNeeds()">Benötigte Bestellungen berechnen</button>
+
+            <!-- Hier erscheint direkt auf der Seite das Auswertungsergebnis -->
+            <div id="stock-result-box">
+                <h3>Erforderliche Nachbestellungen</h3>
+                <div id="stock-result-content"></div>
+                <button class="btn" style="background-color: #28a745; margin-top: 15px;" onclick="sendStockOrderWhatsApp()">Bestellzettel via WhatsApp senden</button>
+            </div>
+            
+            <!-- Refresh-Button für Lagerbestand -->
+            <button class="btn-reset" onclick="resetStock()">Lager-Eingaben verwerfen</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const today = new Date();
+            const dateString = today.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            document.getElementById('page-title').innerText = `Café - ${dateString}`;
+
+            const todayISO = today.toISOString().split('T')[0];
+            const initialDateInput = document.getElementById('initial-cake-date');
+            if (initialDateInput) {
+                initialDateInput.value = todayISO;
+            }
+        };
+
+        function switchTab(tabName, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            btnElement.classList.add('active');
+        }
+
+        function addCake() {
+            const container = document.getElementById('cake-container');
+            const row = document.createElement('div');
+            row.className = 'row cake-row';
+            
+            const todayISO = new Date().toISOString().split('T')[0];
+
+            row.innerHTML = `
+                <input type="text" class="field cake-name" placeholder="Sorte">
+                <input type="date" class="field cake-date" value="${todayISO}">
+                <select class="field cake-unit">
+                    <option value="ganz">ganz</option>
+                    <option value="Stk.">Stk.</option>
+                    <option value="Reserve">Reserve</option>
+                </select>
+                <input type="text" class="field cake-amount" placeholder="Menge">
+                <button class="remove-btn" onclick="removeRow(this, 'cake-container')">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addNote() {
+            const container = document.getElementById('notes-container');
+            const row = document.createElement('div');
+            row.className = 'row note-row';
+            
+            row.innerHTML = `
+                <textarea class="note-field" rows="2" placeholder="zusätzliche Infos"></textarea>
+                <button class="remove-btn" onclick="removeRow(this, 'notes-container')">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeRow(button, containerId) {
+            const row = button.parentElement;
+            const container = document.getElementById(containerId);
+            
+            if (container.children.length > 1) {
+                row.remove();
+            } else {
+                const inputs = row.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    if (input.type === 'date') {
+                        input.value = new Date().toISOString().split('T')[0];
+                    } else if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0;
+                    } else {
+                        input.value = '';
+                    }
+                });
+            }
+        }
+
+        // === Zurücksetzen Funktionen ===
+        function resetOrder() {
+            if (confirm("Möchtest du wirklich alle Bestell- und Kucheneingaben leeren?")) {
+                // Checkboxen deaktivieren
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                
+                // Kuchen-Container leeren und auf den Ursprung setzen
+                const cakeContainer = document.getElementById('cake-container');
+                cakeContainer.innerHTML = '';
+                addCake();
+                
+                // Notizen-Container leeren und auf den Ursprung setzen
+                const notesContainer = document.getElementById('notes-container');
+                notesContainer.innerHTML = '';
+                addNote();
+            }
+        }
+
+        function resetStock() {
+            if (confirm("Möchtest du wirklich alle eingegebenen Lagerbestände verwerfen?")) {
+                // Alle Zahlenfelder leeren
+                document.querySelectorAll('.stock-input').forEach(input => input.value = '');
+                
+                // Ergebnis-Box verstecken und leeren
+                const resultBox = document.getElementById('stock-result-box');
+                const resultContent = document.getElementById('stock-result-content');
+                resultBox.style.display = 'none';
+                resultContent.innerHTML = '';
+            }
+        }
+
+        // WhatsApp für reguläre Bestellungen
+        function sendWhatsAppOrder() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const cakeRows = document.querySelectorAll('.cake-row');
+            const noteFields = document.querySelectorAll('.note-field');
+            
+            let hasCakes = false;
+            let cakesText = "";
+            cakeRows.forEach((row) => {
+                const name = row.querySelector('.cake-name').value.trim();
+                const rawDate = row.querySelector('.cake-date').value;
+                const unit = row.querySelector('.cake-unit').value;
+                const amount = row.querySelector('.cake-amount').value.trim();
+                
+                if (name !== "" || amount !== "") {
+                    hasCakes = true;
+                    let formattedDate = rawDate;
+                    if (rawDate) {
+                        const parts = rawDate.split('-');
+                        if (parts.length === 3) {
+                            formattedDate = `${parts[2]}.${parts[1]}.`;
+                        }
+                    }
+                    cakesText += `> ${name} (Stand: ${formattedDate}, ${amount} ${unit})\n\n`;
+                }
+            });
+
+            let hasNotes = false;
+            let notesText = "";
+            noteFields.forEach((field) => {
+                const text = field.value.trim();
+                if (text !== "") {
+                    hasNotes = true;
+                    notesText += `> ${text}\n\n`; 
+                }
+            });
+
+            if (checkboxes.length === 0 && !hasCakes && !hasNotes) {
+                alert("Bitte wähle mindestens ein Produkt, einen Kuchenbestand oder eine Notiz aus.");
+                return;
+            }
+
+            const today = new Date();
+            const dateString = today.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+            let message = `*Bestellungen Café ${dateString}*\n\n`;
+            if (checkboxes.length > 0) {
+                checkboxes.forEach((cb) => { message += `- ${cb.value}\n`; });
+            }
+            if (hasCakes) {
+                message += `\n*Kuchenbestand*\n\n` + cakesText;
+            }
+            if (hasNotes) {
+                message += `\n*Anmerkungen*\n\n` + notesText;
+            }
+
+            const encodedMessage = encodeURIComponent(message);
+            window.location.href = `https://wa.me/?text=${encodedMessage}`;
+        }
+
+        // Lagerbestand auswerten
+        function calculateStockNeeds() {
+            const inputs = document.querySelectorAll('.stock-input');
+            const resultBox = document.getElementById('stock-result-box');
+            const resultContent = document.getElementById('stock-result-content');
+            
+            let htmlText = "";
+            let missingCount = 0;
+
+            inputs.forEach(input => {
+                const val = input.value.trim();
+                const itemName = input.getAttribute('data-item');
+                const limit = parseInt(input.getAttribute('data-limit'));
+                const unit = input.getAttribute('data-unit');
+
+                if (val !== "") {
+                    const currentStock = parseInt(val);
+                    if (currentStock <= limit) {
+                        missingCount++;
+                        let orderAmount = limit - currentStock;
+                        if (limit === 0 && currentStock === 0) {
+                            orderAmount = 1;
+                        } else if (limit > 0 && currentStock === limit) {
+                            orderAmount = 1;
+                        }
+
+                        htmlText += `<div style="margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+                            <b>${itemName}</b><br>
+                            <span style="color: #a71d2a; font-size: 14px;">Nachbestellen: <b>${orderAmount} ${unit}</b> (Lager: ${currentStock}, Grenze: ${limit})</span>
+                        </div>`;
+                    }
+                }
+            });
+
+            if (missingCount === 0) {
+                htmlText = `<p style="color: #28a745; font-weight: bold;">Alles super! Aktuell liegt kein Bestand unter der Bestellgrenze.</p>`;
+            }
+
+            resultContent.innerHTML = htmlText;
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Exakte Nachbestellmenge per WhatsApp senden
+        function sendStockOrderWhatsApp() {
+            const today = new Date();
+            const dateString = today.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            let message = `*Benötigte Nachbestellungen Lager (${dateString})*\n\n`;
+            const inputs = document.querySelectorAll('.stock-input');
+            let hasMissing = false;
+
+            inputs.forEach(input => {
+                const val = input.value.trim();
+                const itemName = input.getAttribute('data-item');
+                const limit = parseInt(input.getAttribute('data-limit'));
+                const unit = input.getAttribute('data-unit');
+
+                if (val !== "") {
+                    const currentStock = parseInt(val);
+                    if (currentStock <= limit) {
+                        hasMissing = true;
+                        let orderAmount = limit - currentStock;
+                        if (limit === 0 && currentStock === 0) {
+                            orderAmount = 1;
+                        } else if (limit > 0 && currentStock === limit) {
+                            orderAmount = 1;
+                        }
+                        message += `> ${itemName} ${orderAmount} ${unit}\n\n`;
+                    }
+                }
+            });
+
+            if (!hasMissing) {
+                alert("Keine Artikel unter der Bestellgrenze zum Versenden vorhanden.");
+                return;
+            }
+
+            const encodedMessage = encodeURIComponent(message);
+            window.location.href = `https://wa.me/?text=${encodedMessage}`;
+        }
+    </script>
+</body>
+</html>
